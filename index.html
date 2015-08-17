@@ -1,1 +1,454 @@
-test
+<?php
+$apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no, minimal-ui">
+        <title>用户中心 - RESTful API</title>
+        <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+        <script>!window.jQuery && document.write('<script src="http://lib.sinaapp.com/js/jquery/2.0.3/jquery-2.0.3.min.js"><\/script>');</script>
+    </head>
+    <style type="text/css">
+    body{margin:0;padding:30px;font:12px/1.5 Helvetica,Arial,Verdana,sans-serif;}
+    h1{margin:0;font-size:48px;font-weight:normal;line-height:48px;}
+    strong{display:inline-block;width:65px;}
+    .testapi{text-align: center;}
+    </style>
+    <body>
+    <h1>用户中心 - RESTful API</h1>
+    <p>by Feikeq (http://fk68.net)</p>
+
+    <h2>接口</h2>
+    <p>请你的的请求不支持除GET和POST外的方法时，请确保你的请求方式为POST然后表单中添加一项 name="_METHOD" value="PUT"<br>
+    经测试jQuery的ajax都支持下面这些方法:
+    </p>
+        <div>
+            <strong>获取用户</strong>
+            <strong>GET</strong>
+            <?php echo $apiurl;?>user/:id?access_token=ACCESS_TOKEN
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> access_token</td><td> 是</td><td> 调用接口凭证</td></tr>
+              <tr><td> :id</td><td> 是</td><td> 普通用户的唯一标识</td></tr>
+              <tr><td colspan=3>获得某个用户信息[token验证权限]</td></tr>
+            </tbody></table>
+        </div>
+
+        <br/>
+        <div>
+            <strong>新增用户</strong>
+            <strong>POST</strong>
+            <?php echo $apiurl;?>user
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> username </td><td> 是</td><td>varchar(32) 用户名[不能为纯数字](开放平台末绑定自动添加openid)</td></tr>
+              <tr><td> password</td><td> 否</td><td> char(32) 密码(为空说明是没有绑定开放台台的,提交时最好加密或哈希 例：md5(密码+banling))</td></tr>
+              <tr><td> nickname</td><td> 否</td><td> varchar(255) 昵称</td></tr>
+              <tr><td> headimg</td><td> 否</td><td> varchar(255) 头像地址</td></tr>
+              <tr><td> sex</td><td> 否</td><td> char(1) 性别，1：男、2：女、0：未知</td></tr>
+              <tr><td> email</td><td> 否</td><td> varchar(255) 邮件(可做登录)</td></tr>
+              <tr><td> cell</td><td> 否</td><td> varchar(255) 电话(可做登录)</td></tr>
+              <tr><td> birthday</td><td> 否</td><td> datetime 出生日期</td></tr>
+              <tr><td> company</td><td> 否</td><td> varchar(255) 公司</td></tr>
+              <tr><td> addr</td><td> 否</td><td> varchar(255) 地址</td></tr>
+              <tr><td> city</td><td> 否</td><td> varchar(255) 城市</td></tr>
+              <tr><td> province</td><td> 否</td><td> varchar(255) 省份</td></tr>
+              <tr><td> country</td><td> 否</td><td> varchar(255) 国家</td></tr>
+              <tr><td> group</td><td> 否</td><td> varchar(255) 用户组</td></tr>
+              <tr><td> regip</td><td> 否</td><td> varchar(128) 注册IP地址（默认为当前请求的IP）</td></tr>
+              <tr><td> referer</td><td> 否</td><td> varchar(255) 用户来源</td></tr>
+              <tr><td> object</td><td> 否</td><td> text 预留字段(不做检索,可存json数组)[真实姓名身份证号等]</td></tr>
+              <tr><td> remark</td><td> 否</td><td> varchar(255) 备注</td></tr>
+              <tr><td colspan=3>添加用户信息</td></tr>
+            </tbody></table>
+             
+        </div>
+
+        <br/>
+        <div>
+            <strong>更新用户</strong>
+            <strong>PUT</strong>
+            <?php echo $apiurl;?>user/:id?access_token=ACCESS_TOKEN
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> access_token</td><td> 是</td><td> 调用接口凭证</td></tr>
+              <tr><td> :id</td><td> 是</td><td> 普通用户的唯一标识</td></tr>
+              <tr><td> username </td><td> 是</td><td>varchar(32) 用户名[不能为纯数字](如果原密码为空可以设置用户名否则不能更改)</td></tr>
+              <tr><td> password</td><td> 否</td><td> char(32) 修改密码(提交时最好加密或哈希 例：md5(密码+banling))</td></tr>
+              <tr><td> nickname</td><td> 否</td><td> varchar(255) 昵称</td></tr>
+              <tr><td> headimg</td><td> 否</td><td> varchar(255) 头像地址</td></tr>
+              <tr><td> sex</td><td> 否</td><td> char(1) 性别，1：男、2：女、0：未知</td></tr>
+              <tr><td> email</td><td> 否</td><td> varchar(255) 邮件</td></tr>
+              <tr><td> cell</td><td> 否</td><td> varchar(255) 电话</td></tr>
+              <tr><td> birthday</td><td> 否</td><td> datetime 出生日期</td></tr>
+              <tr><td> company</td><td> 否</td><td> varchar(255) 公司</td></tr>
+              <tr><td> addr</td><td> 否</td><td> varchar(255) 地址</td></tr>
+              <tr><td> city</td><td> 否</td><td> varchar(255) 城市</td></tr>
+              <tr><td> province</td><td> 否</td><td> varchar(255) 省份</td></tr>
+              <tr><td> country</td><td> 否</td><td> varchar(255) 国家</td></tr>
+              <tr><td> group</td><td> 否</td><td> varchar(255) 用户组</td></tr>
+              <tr><td> regip</td><td> 否</td><td> varchar(128) 注册IP地址（默认为当前请求的IP）</td></tr>
+              <tr><td> referer</td><td> 否</td><td> varchar(255) 用户来源</td></tr>
+              <tr><td> object</td><td> 否</td><td> text 预留字段(不做检索,可存json数组)[真实姓名身份证号等]</td></tr>
+              <tr><td> remark</td><td> 否</td><td> varchar(255) 备注</td></tr>
+              <tr><td colspan=3> 更新某个用户信息[token验证权限]</td></tr>
+            </tbody></table>
+
+        </div>
+
+        <br/>
+        <div>
+            <strong>删除用户</strong>
+            <strong>DELETE</strong>
+            <?php echo $apiurl;?>user/:id?access_token=ACCESS_TOKEN
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> access_token</td><td> 是</td><td> 调用接口凭证</td></tr>
+              <tr><td> :id</td><td> 是</td><td> 普通用户的唯一标识</td></tr>
+              <tr><td colspan=3 style="color: red;"> 内部接口不对外开放 删除某个用户信息[token验证权限]</td></tr>
+            </tbody></table>
+
+        </div>
+        
+        <br/>
+        <div>
+            <strong>用户登录</strong>
+            <strong>GET/POST</strong>
+            <?php echo $apiurl;?>oauth2/login
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> userid</td><td> 是</td><td> 用户名/手机号/邮箱</td></tr>
+              <tr><td> secret</td><td> 是</td><td> 密钥 </td></tr>
+              <tr><td colspan=3> 客户端自己定加密算法，也可不加密直接传密码做密钥(但为了防止密码被网络窃取最好做一下加密做成密钥传 例：md5(密码+banling))</td></tr>
+            </tbody></table>
+        </div>
+
+        <br/>
+        <div>
+            <strong>用户验证</strong>
+            <strong>GET/POST</strong>
+            <?php echo $apiurl;?>oauth2/authorize/:token
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> :token</td><td> 是</td><td> ACCESS_TOKEN接口凭证</td></tr>
+              <tr><td colspan=3> 验证成功才是合法用户</td></tr>
+            </tbody></table>
+        </div>
+
+        <br/>
+        <div>
+            <strong>用户接入</strong>
+            <strong>PATCH</strong>
+            <?php echo $apiurl;?>user 
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> platfrom </td><td> 是</td><td>tinyint(2)  平台ID (0斑羚 1微信 2新浪 3腾讯 4人人 ..)</td></tr>
+              <tr><td> openid </td><td> 是</td><td>varchar(255) 用户唯一标识</td></tr>
+              <tr><td> unionid </td><td> 否</td><td>varchar(255) 绑定公众号UnionID[微博里英文帐号]</td></tr>
+              <tr><td> nickname</td><td> 否</td><td> varchar(255) 昵称</td></tr>
+              <tr><td> headimg</td><td> 否</td><td> varchar(255) 头像地址</td></tr>
+              <tr><td> sex</td><td> 否</td><td> char(1) 性别，1：男、2：女、0：未知</td></tr>
+              <tr><td> city</td><td> 否</td><td> varchar(255) 城市</td></tr>
+              <tr><td> province</td><td> 否</td><td> varchar(255) 省份</td></tr>
+              <tr><td> country</td><td> 否</td><td> varchar(255) 国家</td></tr>
+              <tr><td> language </td><td> 否</td><td>varchar(255) 语言，简体中文为zh_CN</td></tr>
+              <tr><td> privilege</td><td> 否</td><td> text 用户特权信息(json数组)[微博关注数粉丝数等]</td></tr>
+              <tr><td> token</td><td> 否</td><td> varchar(255) 接口授权凭证</td></tr>
+              <tr><td> expires</td><td> 否</td><td> varchar(255) 授权失效时间</td></tr>
+              <tr><td> refresh</td><td> 否</td><td> varchar(255) 刷新token</td></tr>
+              <tr><td> scope</td><td> 否</td><td> varchar(255) 用户授权的作用域(使用逗号分隔)</td></tr>
+              <tr><td> subscribe</td><td> 否</td><td> varchar(128) 是否关注[微博里是follow]</td></tr>
+              <tr><td> subscribe_time</td><td> 否</td><td> varchar(255) 关注时间(时间戳)</td></tr>
+              <tr><td> group</td><td> 否</td><td> varchar(255) 用户组</td></tr>
+              <tr><td> status</td><td> 否</td><td> text 用户状态(json数组)[用户的最近一条微博信息字段]</td></tr>
+              <tr><td> remark</td><td> 否</td><td> varchar(255) 备注(微博是否认证)可存json数组</td></tr>
+              <tr><td> object</td><td> 否</td><td> text 预留字段(不能检索,可存json数组)</td></tr>
+              <tr><td colspan=3>接入某个开放平台用户信息绑定到用户中心并且以第三方登录</td></tr>
+            </tbody></table>
+        </div>
+
+        <br/>
+        <div>
+            <strong>改绑解绑</strong>
+            <strong>PATCH</strong>
+            <?php echo $apiurl;?>user/:id/:act?access_token=ACCESS_TOKEN
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> access_token</td><td> 是</td><td> 调用接口凭证</td></tr>
+              <tr><td> :id</td><td> 是</td><td> 普通用户的唯一标识（只有在改绑和解绑时才要:id和:act参数）</td></tr>
+              <tr><td> :act</td><td> 是</td><td> 操作方式为改绑bind或解绑unbind</td></tr>
+              <tr><td> platfrom </td><td> 是</td><td>tinyint(2)  平台ID (0斑羚 1微信 2新浪 3腾讯 4人人 ..)</td></tr>
+              <tr><td> openid </td><td> 是</td><td>varchar(255) 用户唯一标识</td></tr>
+              <tr><td colspan=3> 如果解绑不用传下面参数 </td></tr>
+              <tr><td> unionid </td><td> 否</td><td>varchar(255) 绑定公众号UnionID[微博里英文帐号]</td></tr>
+              <tr><td> nickname</td><td> 否</td><td> varchar(255) 昵称</td></tr>
+              <tr><td> headimg</td><td> 否</td><td> varchar(255) 头像地址</td></tr>
+              <tr><td> sex</td><td> 否</td><td> char(1) 性别，1：男、2：女、0：未知</td></tr>
+              <tr><td> city</td><td> 否</td><td> varchar(255) 城市</td></tr>
+              <tr><td> province</td><td> 否</td><td> varchar(255) 省份</td></tr>
+              <tr><td> country</td><td> 否</td><td> varchar(255) 国家</td></tr>
+              <tr><td> language </td><td> 否</td><td>varchar(255) 语言，简体中文为zh_CN</td></tr>
+              <tr><td> privilege</td><td> 否</td><td> text 用户特权信息(json数组)[微博关注数粉丝数等]</td></tr>
+              <tr><td> token</td><td> 否</td><td> varchar(255) 接口授权凭证</td></tr>
+              <tr><td> expires</td><td> 否</td><td> varchar(255) 授权失效时间</td></tr>
+              <tr><td> refresh</td><td> 否</td><td> varchar(255) 刷新token</td></tr>
+              <tr><td> scope</td><td> 否</td><td> varchar(255) 用户授权的作用域(使用逗号分隔)</td></tr>
+              <tr><td> subscribe</td><td> 否</td><td> varchar(128) 是否关注[微博里是follow]</td></tr>
+              <tr><td> subscribe_time</td><td> 否</td><td> varchar(255) 关注时间(时间戳)</td></tr>
+              <tr><td> group</td><td> 否</td><td> varchar(255) 用户组</td></tr>
+              <tr><td> status</td><td> 否</td><td> text 用户状态(json数组)[用户的最近一条微博信息字段]</td></tr>
+              <tr><td> remark</td><td> 否</td><td> varchar(255) 备注(微博是否认证)可存json数组</td></tr>
+              <tr><td> object</td><td> 否</td><td> text 预留字段(不能检索,可存json数组)</td></tr>
+              <tr><td colspan=3> 改绑 和 解绑 第三方登录 [token验证权限] </td></tr>
+            </tbody></table>
+
+        </div>
+
+
+        <br />
+        <h2>错误代码</h2>
+        <pre>
+            
+  --系统错误
+    404 "Not Found" 无效请求
+    500 "Internal server error" 服务器内部错误 
+
+    1001 "Illegal operation permission" 非法操作权限
+    1002 "None token" 没有token
+    1003 "Invalid Token" token令牌失败
+    1004 "Token validity time has expired" 令牌有效期已过期
+
+    2000 "$e->getMessage" 数据库异常
+    2001 "DB insert failure" 数据库入库失败
+    2004 "DB updated failure" 数据库更新失败
+    2005 "DB delete failure" 数据库删除失败
+    2006 "DB create failure" 数据表创建失败
+    
+
+  --程序错误
+    3001 "Secret error" 密钥错误
+    3002 "Unknown `userid` or `secret`" 没有用户名或密钥
+    3003 "No bind action" 没有绑定动作
+    3004 "This account bind by user `xxx`, if change unbind.";//帐号已被xxx绑定，请先解绑。
+    3005 "Unknown `platfrom` and `openid`" 未知的平台ID和唯一识别ID
+    3006 "This user does not exist" 这个用户不存在
+    3007 "This `username` already exists" 这个用户名已经存在
+    3008 "This `email` already exists" 这个邮箱已经存在
+    3009 "This `cell` already exists" 这个电话已存在
+    3010 "The `username` can not null" 用户名不能为空
+    3011 "This account not change `username`" 此帐号已绑定用户名不能修改
+
+
+             
+        </pre>
+
+        <div class="testapi">
+        API地址：<input type="text" id="apirul" placeholder="api_url" style="width: 80%;line-height: 30px;" value="user/1">
+          <form id="testform" action="user/" method="get" target="_blank">
+              <input type="radio" name="RESTful" value="GET">GET
+              <input type="radio" name="RESTful" value="POST">POST
+              <input type="radio" name="RESTful" value="PUT">PUT
+              <input type="radio" name="RESTful" value="DELETE">DELETE
+              <br/>
+              <input type="radio" name="RESTful" value="PATCH">PATCH
+              <input type="radio" name="RESTful" value="OPTIONS">OPTIONS
+              <br/>
+              参数：<input type="text" id="newFormMOD" style="width: 80%;line-height: 30px;"  placeholder="字段名=值&名2=值2..." value="email=fk@t.cn&cell=38389438&userid=feikeq&secret=123456&openid=feikeq&platfrom=0&nickname=废客泉&username=ccav">
+              <br/>
+              <!-- input type="submit" value="Test RESTful API" style="width: 50%; height: 50px;line-height: 50px;background: #fff;" / -->
+          </form>
+          <br/>
+          <input type="submit" onclick="fk_submit_ajax()" value="Test RESTful API" title="传 _debug 参数开启调试" style="width: 50%; height: 50px;line-height: 50px;background: #fff;" />
+
+          <br/>
+              <pre id='jsonstr' style="text-align: left;padding: 5px 10px;border: 1px solid #ccc;color: #333;background-color: #F8F8F8;line-height: 20px;white-space: pre-wrap;white-space: -moz-pre-wrap;white-space: -pre-wrap;white-space: -o-pre-wrap;word-wrap: break-word;border-radius: 3px;">结果：</pre>
+              <br/>  
+
+        </div>
+        <script type="text/javascript">
+
+var ajax_type="GET";
+var ajax_url="index.php/user"; 
+
+
+  $("input[type='radio'],input[type='checkbox']").click(function(event) {
+      var tip = $(this).val();
+      
+      ajax_type = tip;
+  });
+
+
+
+function fk_submit_ajax(){
+  var $datas = $('form').serializeArray();
+  //添加新的字段
+  var _newattr = parse_str($('#newFormMOD').val());
+  for(var key in _newattr){
+    $datas.push({'name':key,'value':_newattr[key]});//添加新的字段
+  }
+
+  var token = getCookie('access_token');
+  var url = $('#apirul').val();
+  if(token)url =url + "?access_token="+token;
+   
+
+
+  $.ajax({
+    url: url, //"index.php/oauth2/login", //请求地址
+    method: ajax_type, // 请求方法 "POST", "GET", "PUT", "DELETE", "FEIKEQ" (JQ1.9.0以前用type做参数)
+    dataType: "json", //数据类型 "xml", "json", "script", "html"
+    data:$datas  //传参方式一：data:"x=116.506966&y=39.915977" 传参方式二： data:{lat : x , lng : y} 
+  })
+  //AJAX相关回调方法
+  .done(function( data, textStatus, jqXHR ){ 
+    $('#jsonstr').html(JSON.stringify(data,null, "\t"));
+    console.log(data);console.log(textStatus);console.log(jqXHR); alert( "请求成功: "+data.meta.msg); 
+    if(data.meta.msg=='Login success' || data.meta.msg=='Other account automatically login'){
+      console.log('---------------');
+      var _tmp = data.data;
+      
+      setCookie('username',_tmp.username,2,'/',location.host);
+      setCookie('nickname',_tmp.nickname,2,'/',location.host);
+      setCookie('headimg',_tmp.headimg,2,'/',location.host);
+      setCookie('access_token',_tmp.access_token,2,'/',location.host);
+      setCookie('expires_in',_tmp.expires_in,2,'/',location.host);
+      console.log(_tmp);
+      //setCookie('access_token','934e5f8e76650591b596fce954ed75e719t1435376984',2,'/','banling.com');
+
+    }
+  }) //替换不推荐使用的 success
+  .fail(function( jqXHR, textStatus, errorThrown ){$('#jsonstr').html(JSON.stringify(jqXHR,null, "\t")); alert( "请求失败: " + textStatus );console.log(jqXHR);console.log(errorThrown); }) //替换不推荐使用的 error
+}
+
+
+/* JS cookie 方法 setCookie('mycooikes','test3',2,'/','abc.com'); */
+function getCookie(c_name){if(document.cookie.length>0){c_start=document.cookie.indexOf(c_name+"=");if(c_start!=-1){c_start=c_start+c_name.length+1;c_end=document.cookie.indexOf(";",c_start);if(c_end==-1)c_end=document.cookie.length;return unescape(document.cookie.substring(c_start,c_end))}}return""}
+function setCookie(c_name,value,expiredays,path,domain){var exdate=new Date();exdate.setDate(exdate.getDate()+expiredays);document.cookie=c_name+"="+escape(value)+((expiredays==null)?"":"; expires="+exdate.toGMTString())+((path==null)?"":"; path="+path)+((domain==null)?"":"; domain="+domain)}
+function delCookie(c_name,path,domain){var cval=getCookie(c_name);if(cval!=null)setCookie(c_name,'',-1,path,domain)}
+
+
+
+function parse_str(str) {
+  //       discuss at: http://phpjs.org/functions/parse_str/
+  //      original by: Cagri Ekin
+  //      improved by: Michael White (http://getsprink.com)
+  //      improved by: Jack
+  //      improved by: Brett Zamir (http://brett-zamir.me)
+  //      bugfixed by: Onno Marsman
+  //      bugfixed by: Brett Zamir (http://brett-zamir.me)
+  //      bugfixed by: stag019
+  //      bugfixed by: Brett Zamir (http://brett-zamir.me)
+  //      bugfixed by: MIO_KODUKI (http://mio-koduki.blogspot.com/)
+  // reimplemented by: stag019
+  //         input by: Dreamer
+  //         input by: Zaide (http://zaidesthings.com/)
+  //         input by: David Pesta (http://davidpesta.com/)
+  //         input by: jeicquest
+  //             note: When no argument is specified, will put variables in global scope.
+  //             note: When a particular argument has been passed, and the returned value is different parse_str of PHP. For example, a=b=c&d====c
+  //             test: skip
+  //        example 1: var arr = {};
+  //        example 1: parse_str('first=foo&second=bar', arr);
+  //        example 1: $result = arr
+  //        returns 1: { first: 'foo', second: 'bar' }
+  //        example 2: var arr = {};
+  //        example 2: parse_str('str_a=Jack+and+Jill+didn%27t+see+the+well.', arr);
+  //        example 2: $result = arr
+  //        returns 2: { str_a: "Jack and Jill didn't see the well." }
+  //        example 3: var abc = {3:'a'};
+  //        example 3: parse_str('abc[a][b]["c"]=def&abc[q]=t+5');
+  //        returns 3: {"3":"a","a":{"b":{"c":"def"}},"q":"t 5"}
+
+  var strArr = String(str)
+    .replace(/^&/, '')
+    .replace(/&$/, '')
+    .split('&'),
+    sal = strArr.length,
+    i, j, ct, p, lastObj, obj, lastIter, undef, chr, tmp, key, value,
+    postLeftBracketPos, keys, keysLen,
+    fixStr = function(str) {
+      return decodeURIComponent(str.replace(/\+/g, '%20'));
+    };
+
+
+    array = {};
+  
+
+  for (i = 0; i < sal; i++) {
+    tmp = strArr[i].split('=');
+    key = fixStr(tmp[0]);
+    value = (tmp.length < 2) ? '' : fixStr(tmp[1]);
+
+    while (key.charAt(0) === ' ') {
+      key = key.slice(1);
+    }
+    if (key.indexOf('\x00') > -1) {
+      key = key.slice(0, key.indexOf('\x00'));
+    }
+    if (key && key.charAt(0) !== '[') {
+      keys = [];
+      postLeftBracketPos = 0;
+      for (j = 0; j < key.length; j++) {
+        if (key.charAt(j) === '[' && !postLeftBracketPos) {
+          postLeftBracketPos = j + 1;
+        } else if (key.charAt(j) === ']') {
+          if (postLeftBracketPos) {
+            if (!keys.length) {
+              keys.push(key.slice(0, postLeftBracketPos - 1));
+            }
+            keys.push(key.substr(postLeftBracketPos, j - postLeftBracketPos));
+            postLeftBracketPos = 0;
+            if (key.charAt(j + 1) !== '[') {
+              break;
+            }
+          }
+        }
+      }
+      if (!keys.length) {
+        keys = [key];
+      }
+      for (j = 0; j < keys[0].length; j++) {
+        chr = keys[0].charAt(j);
+        if (chr === ' ' || chr === '.' || chr === '[') {
+          keys[0] = keys[0].substr(0, j) + '_' + keys[0].substr(j + 1);
+        }
+        if (chr === '[') {
+          break;
+        }
+      }
+
+      obj = array;
+      for (j = 0, keysLen = keys.length; j < keysLen; j++) {
+        key = keys[j].replace(/^['"]/, '')
+          .replace(/['"]$/, '');
+        lastIter = j !== keys.length - 1;
+        lastObj = obj;
+        if ((key !== '' && key !== ' ') || j === 0) {
+          if (obj[key] === undef) {
+            obj[key] = {};
+          }
+          obj = obj[key];
+        } else { // To insert new dimension
+          ct = -1;
+          for (p in obj) {
+            if (obj.hasOwnProperty(p)) {
+              if (+p > ct && p.match(/^\d+$/g)) {
+                ct = +p;
+              }
+            }
+          }
+          key = ct + 1;
+        }
+      }
+      lastObj[key] = value;
+    }
+  }
+  return lastObj;
+}
+
+
+        </script>
+    </body>
+</html>
