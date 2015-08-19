@@ -41,6 +41,7 @@
 		3009 "This `cell` already exists" 这个电话已存在
 		3010 "The `username` can not null" 用户名不能为空
 		3011 "This account not change `username`" 此帐号已绑定用户名不能修改
+		3012 "The `username` Cannot numbers" 用户名不能为纯数字 
 
 
  *
@@ -246,6 +247,10 @@ $app->map('/oauth2/authorize/:token(/)','AUTHORIZE')->via('GET', 'POST');
 
 //接入某个开放平台用户信息绑定到用户中心 或 第三方登录 //[token验证权限] 或 改绑 和 解绑 第三方登录
 $app->patch('/user((/:id/:act)(/))','PATCH_USER');
+
+
+//获得用户开放平台信息
+$app->map('/oauth2/open/:platfrom/:openid(/)','GET_OPENUSER')->via('GET', 'POST');
 
 
 
@@ -506,6 +511,15 @@ function POST_USER($Placeholder='',$_Return=false){
 
 	if(isset($_REQUEST['username'])){
 		$username = strtolower(trim($_REQUEST['username'])); //用户名去空格并转为小写
+
+		// 检测用户是否为数字或数字字符串
+		if(is_numeric($username)){
+			$api_result['meta']['error'] =  3012;
+			$api_result['meta']['msg'] = "The `username` Cannot numbers";//用户名不能为纯数字
+			if($_Return) return $api_result;
+			echojson($api_result);exit();
+		}
+
 		$c_user = GET_USER('', array('username' => $username));
 		if($c_user['meta']['error']){
 			//用户不存在
@@ -538,7 +552,7 @@ function POST_USER($Placeholder='',$_Return=false){
 					}
 	        	}
 	        	if(isset($_REQUEST['cell'])){
-					$data_field['cell'] = $_REQUEST['cell'];
+					$data_field['cell'] =  preg_replace('/\D/','',$_REQUEST['cell']);
         			$tmp_user = GET_USER('',array('cell' =>$data_field['cell']));
 					//这个电话已存在
 					if(!$tmp_user['meta']['error']){
@@ -642,6 +656,8 @@ function PUT_USER($id='',$_Return=false){
 				exit();
 			}
 		}
+	}else{
+		$_REQUEST = $_Return; //直接取值
 	}
 
 
@@ -676,6 +692,15 @@ function PUT_USER($id='',$_Return=false){
 				//得到用户名 
 	    		$username = strtolower(trim($_REQUEST['username']));
 
+	    		// 检测用户是否为数字或数字字符串
+				if(is_numeric($username)){
+					$api_result['meta']['error'] =  3012;
+					$api_result['meta']['msg'] = "The `username` Cannot numbers";//用户名不能为纯数字
+					if($_Return) return $api_result;
+					echojson($api_result);exit();
+				}
+
+
 	    		//查找这个用户名是否存在
 	    		$tmp_user = GET_USER('',array('username' => $username));
 				if(!$tmp_user['meta']['error']){
@@ -685,6 +710,8 @@ function PUT_USER($id='',$_Return=false){
 					if($_Return) return $api_result;
 					echojson($api_result);exit();
 				}
+
+				
 				//赋值新用户名
 	    		$data_field['username'] = $username;
 	    	}else{
@@ -699,26 +726,39 @@ function PUT_USER($id='',$_Return=false){
 			if(isset($_REQUEST['headimg'])) $data_field['headimg'] = $_REQUEST['headimg'];
 			if(isset($_REQUEST['sex'])) $data_field['sex'] = $_REQUEST['sex'];
 			if(isset($_REQUEST['email'])){
-				$data_field['email'] = strtolower(trim($_REQUEST['email'])); //去空格并转为小写
-				$tmp_user = GET_USER('',array('email' =>$data_field['email']));
+				$tmp_email =  strtolower(trim($_REQUEST['email'])); //去空格并转为小写
+				$tmp_user = GET_USER('',array('email' =>$tmp_email));
 				if(!$tmp_user['meta']['error']){
 					//这个邮箱已经存在
 					$api_result['meta']['error'] =  3008;
 					$api_result['meta']['msg'] = "This `email` already exists";//这个邮箱已经存在
-					if($_Return) return $api_result;
-					echojson($api_result);exit();
+					if($_Return){
+						//内部调用则跳过设置EMAIL
+						//return $api_result;
+					}else{
+						echojson($api_result);exit();
+					}
+				}else{
+					$data_field['email'] =$tmp_email;
 				}
 
 			} 
 			if(isset($_REQUEST['cell'])){
-				$data_field['cell'] = $_REQUEST['cell'];
-				$tmp_user = GET_USER('',array('cell' =>$data_field['cell']));
+				//$tmp_cell = trim($_REQUEST['cell']); //去空格
+				$tmp_cell =  preg_replace('/\D/','',$_REQUEST['cell']);
+				$tmp_user = GET_USER('',array('cell' =>$tmp_cell));
 				if(!$tmp_user['meta']['error']){
 					//这个电话已经存在
 					$api_result['meta']['error'] =  3009;
 					$api_result['meta']['msg'] = "This `cell` already exists";//这个电话已经存在
-					if($_Return) return $api_result;
-					echojson($api_result);exit();
+					if($_Return){
+						//内部调用则跳过设置CELL
+						//return $api_result;
+					}else{
+						echojson($api_result);exit();
+					} 
+				}else{
+					$data_field['cell'] = $tmp_cell;
 				}
 			} 
 			if(isset($_REQUEST['company'])) $data_field['company'] = $_REQUEST['company'];
@@ -858,7 +898,7 @@ function LOGIN($_Return=false){
 			if(isEmail($userid)){
 				 $user_arr = array('email' => $userid);
 			}else if(isPhone($userid)){
-				$user_arr = array('cell' => $userid);
+				$user_arr = array('cell' => $userid);  //七个以上的数字均为电话或手机号，包括区号
 			}else{
 				$user_arr = array('username' => $userid);
 			}
@@ -1063,7 +1103,7 @@ function PATCH_USER($id='',$boundact=''){
 	//如果有platfrom平台ID 登录或创建新用户登录 修改取消绑定
 	if($platfrom !='' && $openid !=''){
 
-		$o_user = get_openuser($platfrom,$openid,true);
+		$o_user = GET_OPENUSER($platfrom,$openid,true);
 
 
 
@@ -1096,40 +1136,85 @@ function PATCH_USER($id='',$boundact=''){
 			$o_user = (array)$o_user['data'][0]; //直接将数据库对象转为数组并重新赋值方便使用[]调用
 			$uid = $o_user['uid']; //要改绑的OPEN用户中心ID
 
-			//更新OPEN用户资料
-			$_REQUEST['boundact'] = $boundact;
-			$_REQUEST['actuid'] = $uid;
-    		$_REQUEST['uid'] = $id;
-    		$editopenuser = edit_openuser($platfrom,$openid,true);
-    		if($editopenuser['meta']['error']){
-    			$api_result['meta']['error'] = $editopenuser['meta']['error'];
-				$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
-				echojson($api_result);exit();
-    		}else{
-    			$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
-    		}
 
 
-        	// 改绑 或 解绑 提示
-        	if($boundact){
-        		$api_result['meta']['msg'] = $boundact .' successful'; //成功标识
-        	}else{
-        	//如果有绑定操作 直接登陆这个用户
-	        	$api_result['meta']['msg'] ="Other account automatically login";//第三方平台帐号自动登录成功
-        		$_login = LOGIN($uid);
 
-        		if($_login['meta']['error']){
-	        		//自动登陆失败
-	        		$api_result['meta']['error'] = $_login['meta']['error'];
-	        		$api_result['meta']['msg'] = $_login['meta']['msg'];
+			$c_user = GET_USER($uid,true);
+			if($c_user['meta']['error']){
+				//用户中心查询失败
+				$api_result['meta']['error'] = $c_user['meta']['error'];
+				$api_result['meta']['msg'] = $c_user['meta']['msg'];
+			}else{
+				//如果用户存在
+				$c_user = (array)$c_user['data'][0]; //直接将数据库对象转为数组并重新赋值方便使用[]调用
+
+
+
+				//更新OPEN用户资料
+				$_REQUEST['boundact'] = $boundact;
+				$_REQUEST['actuid'] = $uid;
+	    		$_REQUEST['uid'] = $id;
+	    		$editopenuser = edit_openuser($platfrom,$openid,true);
+	    		if($editopenuser['meta']['error']){
+	    			$api_result['meta']['error'] = $editopenuser['meta']['error'];
+					$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
+					echojson($api_result);exit();
+	    		}else{
+	    			$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
+	    		}
+
+
+	        	// 改绑 或 解绑 提示
+	        	if($boundact){
+	        		$api_result['meta']['msg'] = $boundact .' successful'; //成功标识
 	        	}else{
-	        		//自动登陆成功返回数据
-	        		$api_result['data'] = $_login['data'];
+
+
+	        		//更新用户为空的字段
+	        		$updata = array();
+	        		if( isset($_REQUEST['nickname']) && empty($c_user['nickname']) ) $updata['nickname'] = $_REQUEST['nickname'];
+	        		if( isset($_REQUEST['headimg']) && empty($c_user['headimg']) ) $updata['headimg'] = $_REQUEST['headimg'];
+	        		if( isset($_REQUEST['sex']) && empty($c_user['sex']) ) $updata['sex'] = $_REQUEST['sex'];
+	        		if( isset($_REQUEST['city']) && empty($c_user['city']) ) $updata['city'] = $_REQUEST['city'];
+	        		if( isset($_REQUEST['province']) && empty($c_user['province']) ) $updata['province'] = $_REQUEST['province'];
+	        		if( isset($_REQUEST['country']) && empty($c_user['country']) ) $updata['country'] = $_REQUEST['country'];
+	        		if( isset($_REQUEST['remark']) && empty($c_user['remark']) ) $updata['remark'] = $_REQUEST['remark'];
+	        		if( isset($_REQUEST['object']) && empty($c_user['object']) ) $updata['object'] = $_REQUEST['object'];
+	        		if( isset($_REQUEST['email']) && empty($c_user['email']) ) $updata['email'] = $_REQUEST['email'];
+	        		if( isset($_REQUEST['cell']) && empty($c_user['cell']) ) $updata['cell'] = $_REQUEST['cell'];
+	        		//如果有要修改的数据
+	        		if($updata){
+	        			$p_user = PUT_USER($uid,$updata);
+						if($p_user['meta']['error']){
+							//用户为空资料更新失败
+							$api_result['meta']['error'] = $p_user['meta']['error'];
+							$api_result['meta']['msg'] = $p_user['meta']['msg'];
+						}
+	        		}
+	        		
+
+
+	        		//如果有绑定操作 直接登陆这个用户
+		        	$api_result['meta']['msg'] ="Other account automatically login";//第三方平台帐号自动登录成功
+	        		$_login = LOGIN($uid);
+
+	        		if($_login['meta']['error']){
+		        		//自动登陆失败
+		        		$api_result['meta']['error'] = $_login['meta']['error'];
+		        		$api_result['meta']['msg'] = $_login['meta']['msg'];
+		        	}else{
+		        		//自动登陆成功返回数据
+		        		$api_result['data'] = $_login['data'];
+		        	}
+
+
 	        	}
+	        // $c_user 结束	
+			}
 
 
-        	}
 
+        //如果这个openid用户存在 结束
 		}
 		
 
@@ -1412,8 +1497,8 @@ function edit_openuser($platfrom='',$openid='',$_Return=false){
 
 
 
-//内部方法 查找openid和platrom 对应用用户信息 
-function get_openuser($platfrom='',$openid='',$_Return=false){
+//查找openid和platrom 对应用用户信息 
+function GET_OPENUSER($platfrom='',$openid='',$_Return=false){
 	
 
 	$app = \Slim\Slim::getInstance(); //把应用名称传递给 Slim 应用的 getInstance() 静态函数。
@@ -1429,6 +1514,21 @@ function get_openuser($platfrom='',$openid='',$_Return=false){
 	    if($_Return) return $api_result; //直接返回给函数
 	    echojson($api_result);exit();
 	}
+
+	 //验证token权限
+	if(!$_Return){
+		$access_token = isset($_REQUEST['access_token']) ? $_REQUEST['access_token']:'';
+		$authorize = AUTHORIZE($access_token,true);
+		if($authorize['meta']['error']){
+			$api_result['meta']['error'] = $authorize['meta']['error'];
+			$api_result['meta']['msg'] = $authorize['meta']['msg'];
+			echojson($api_result);
+			exit();
+		}
+	} 
+
+
+
 
 	//查找openid和platrom 对应用用户信息
     try {
@@ -1561,12 +1661,13 @@ function isEmail($subject) {
 }
 //检测是否为手机号码
 function isPhone($subject) {
-	//$pattern='/^(0|86|17951)?(13[0-9]|15[012356789]|1[78][0-9]|14[57])[0-9]{8}$/';
+	return is_numeric($subject);
+	/*//$pattern='/^(0|86|17951)?(13[0-9]|15[012356789]|1[78][0-9]|14[57])[0-9]{8}$/';
 	$pattern ='/^\d{7,}$/'; //七个以上的数字均为电话或手机号，包括区号
 	if(preg_match($pattern, $subject)){
 		return true;
 	}
-	return false;
+	return false;*/
 }
 
 

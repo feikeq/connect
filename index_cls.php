@@ -43,6 +43,8 @@
 		3009 "This `cell` already exists" 这个电话已存在
 		3010 "The `username` can not null" 用户名不能为空
 		3011 "This account not change `username`" 此帐号已绑定用户名不能修改
+		3012 "The `username` Cannot numbers" 用户名不能为纯数字 
+
 
 
  *
@@ -53,8 +55,10 @@
 
 
 
-
  
+
+
+
 
 
 
@@ -207,6 +211,10 @@ $app->map('/oauth2/authorize/:token(/)','AUTHORIZE')->via('GET', 'POST');
 
 
 $app->patch('/user((/:id/:act)(/))','PATCH_USER');
+
+
+
+$app->map('/oauth2/open/:platfrom/:openid(/)','GET_OPENUSER')->via('GET', 'POST');
 
 
 
@@ -385,6 +393,15 @@ function POST_USER($Placeholder='',$_Return=false){
 
 	if(isset($_REQUEST['username'])){
 		$username = strtolower(trim($_REQUEST['username'])); 
+
+		
+		if(is_numeric($username)){
+			$api_result['meta']['error'] =  3012;
+			$api_result['meta']['msg'] = "The `username` Cannot numbers";
+			if($_Return) return $api_result;
+			echojson($api_result);exit();
+		}
+
 		$c_user = GET_USER('', array('username' => $username));
 		if($c_user['meta']['error']){
 			
@@ -417,7 +434,7 @@ function POST_USER($Placeholder='',$_Return=false){
 					}
 	        	}
 	        	if(isset($_REQUEST['cell'])){
-					$data_field['cell'] = $_REQUEST['cell'];
+					$data_field['cell'] =  preg_replace('/\D/','',$_REQUEST['cell']);
         			$tmp_user = GET_USER('',array('cell' =>$data_field['cell']));
 					
 					if(!$tmp_user['meta']['error']){
@@ -521,6 +538,8 @@ function PUT_USER($id='',$_Return=false){
 				exit();
 			}
 		}
+	}else{
+		$_REQUEST = $_Return; 
 	}
 
 
@@ -556,6 +575,15 @@ function PUT_USER($id='',$_Return=false){
 	    		$username = strtolower(trim($_REQUEST['username']));
 
 	    		
+				if(is_numeric($username)){
+					$api_result['meta']['error'] =  3012;
+					$api_result['meta']['msg'] = "The `username` Cannot numbers";
+					if($_Return) return $api_result;
+					echojson($api_result);exit();
+				}
+
+
+	    		
 	    		$tmp_user = GET_USER('',array('username' => $username));
 				if(!$tmp_user['meta']['error']){
 					
@@ -564,6 +592,8 @@ function PUT_USER($id='',$_Return=false){
 					if($_Return) return $api_result;
 					echojson($api_result);exit();
 				}
+
+				
 				
 	    		$data_field['username'] = $username;
 	    	}else{
@@ -578,26 +608,39 @@ function PUT_USER($id='',$_Return=false){
 			if(isset($_REQUEST['headimg'])) $data_field['headimg'] = $_REQUEST['headimg'];
 			if(isset($_REQUEST['sex'])) $data_field['sex'] = $_REQUEST['sex'];
 			if(isset($_REQUEST['email'])){
-				$data_field['email'] = strtolower(trim($_REQUEST['email'])); 
-				$tmp_user = GET_USER('',array('email' =>$data_field['email']));
+				$tmp_email =  strtolower(trim($_REQUEST['email'])); 
+				$tmp_user = GET_USER('',array('email' =>$tmp_email));
 				if(!$tmp_user['meta']['error']){
 					
 					$api_result['meta']['error'] =  3008;
 					$api_result['meta']['msg'] = "This `email` already exists";
-					if($_Return) return $api_result;
-					echojson($api_result);exit();
+					if($_Return){
+						
+						
+					}else{
+						echojson($api_result);exit();
+					}
+				}else{
+					$data_field['email'] =$tmp_email;
 				}
 
 			} 
 			if(isset($_REQUEST['cell'])){
-				$data_field['cell'] = $_REQUEST['cell'];
-				$tmp_user = GET_USER('',array('cell' =>$data_field['cell']));
+				
+				$tmp_cell =  preg_replace('/\D/','',$_REQUEST['cell']);
+				$tmp_user = GET_USER('',array('cell' =>$tmp_cell));
 				if(!$tmp_user['meta']['error']){
 					
 					$api_result['meta']['error'] =  3009;
 					$api_result['meta']['msg'] = "This `cell` already exists";
-					if($_Return) return $api_result;
-					echojson($api_result);exit();
+					if($_Return){
+						
+						
+					}else{
+						echojson($api_result);exit();
+					} 
+				}else{
+					$data_field['cell'] = $tmp_cell;
 				}
 			} 
 			if(isset($_REQUEST['company'])) $data_field['company'] = $_REQUEST['company'];
@@ -721,7 +764,7 @@ function LOGIN($_Return=false){
 			if(isEmail($userid)){
 				 $user_arr = array('email' => $userid);
 			}else if(isPhone($userid)){
-				$user_arr = array('cell' => $userid);
+				$user_arr = array('cell' => $userid);  
 			}else{
 				$user_arr = array('username' => $userid);
 			}
@@ -926,7 +969,7 @@ function PATCH_USER($id='',$boundact=''){
 	
 	if($platfrom !='' && $openid !=''){
 
-		$o_user = get_openuser($platfrom,$openid,true);
+		$o_user = GET_OPENUSER($platfrom,$openid,true);
 
 
 
@@ -959,40 +1002,85 @@ function PATCH_USER($id='',$boundact=''){
 			$o_user = (array)$o_user['data'][0]; 
 			$uid = $o_user['uid']; 
 
-			
-			$_REQUEST['boundact'] = $boundact;
-			$_REQUEST['actuid'] = $uid;
-    		$_REQUEST['uid'] = $id;
-    		$editopenuser = edit_openuser($platfrom,$openid,true);
-    		if($editopenuser['meta']['error']){
-    			$api_result['meta']['error'] = $editopenuser['meta']['error'];
-				$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
-				echojson($api_result);exit();
-    		}else{
-    			$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
-    		}
 
 
-        	
-        	if($boundact){
-        		$api_result['meta']['msg'] = $boundact .' successful'; 
-        	}else{
-        	
-	        	$api_result['meta']['msg'] ="Other account automatically login";
-        		$_login = LOGIN($uid);
 
-        		if($_login['meta']['error']){
-	        		
-	        		$api_result['meta']['error'] = $_login['meta']['error'];
-	        		$api_result['meta']['msg'] = $_login['meta']['msg'];
+			$c_user = GET_USER($uid,true);
+			if($c_user['meta']['error']){
+				
+				$api_result['meta']['error'] = $c_user['meta']['error'];
+				$api_result['meta']['msg'] = $c_user['meta']['msg'];
+			}else{
+				
+				$c_user = (array)$c_user['data'][0]; 
+
+
+
+				
+				$_REQUEST['boundact'] = $boundact;
+				$_REQUEST['actuid'] = $uid;
+	    		$_REQUEST['uid'] = $id;
+	    		$editopenuser = edit_openuser($platfrom,$openid,true);
+	    		if($editopenuser['meta']['error']){
+	    			$api_result['meta']['error'] = $editopenuser['meta']['error'];
+					$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
+					echojson($api_result);exit();
+	    		}else{
+	    			$api_result['meta']['msg'] = $editopenuser['meta']['msg'];
+	    		}
+
+
+	        	
+	        	if($boundact){
+	        		$api_result['meta']['msg'] = $boundact .' successful'; 
 	        	}else{
+
+
 	        		
-	        		$api_result['data'] = $_login['data'];
+	        		$updata = array();
+	        		if( isset($_REQUEST['nickname']) && empty($c_user['nickname']) ) $updata['nickname'] = $_REQUEST['nickname'];
+	        		if( isset($_REQUEST['headimg']) && empty($c_user['headimg']) ) $updata['headimg'] = $_REQUEST['headimg'];
+	        		if( isset($_REQUEST['sex']) && empty($c_user['sex']) ) $updata['sex'] = $_REQUEST['sex'];
+	        		if( isset($_REQUEST['city']) && empty($c_user['city']) ) $updata['city'] = $_REQUEST['city'];
+	        		if( isset($_REQUEST['province']) && empty($c_user['province']) ) $updata['province'] = $_REQUEST['province'];
+	        		if( isset($_REQUEST['country']) && empty($c_user['country']) ) $updata['country'] = $_REQUEST['country'];
+	        		if( isset($_REQUEST['remark']) && empty($c_user['remark']) ) $updata['remark'] = $_REQUEST['remark'];
+	        		if( isset($_REQUEST['object']) && empty($c_user['object']) ) $updata['object'] = $_REQUEST['object'];
+	        		if( isset($_REQUEST['email']) && empty($c_user['email']) ) $updata['email'] = $_REQUEST['email'];
+	        		if( isset($_REQUEST['cell']) && empty($c_user['cell']) ) $updata['cell'] = $_REQUEST['cell'];
+	        		
+	        		if($updata){
+	        			$p_user = PUT_USER($uid,$updata);
+						if($p_user['meta']['error']){
+							
+							$api_result['meta']['error'] = $p_user['meta']['error'];
+							$api_result['meta']['msg'] = $p_user['meta']['msg'];
+						}
+	        		}
+	        		
+
+
+	        		
+		        	$api_result['meta']['msg'] ="Other account automatically login";
+	        		$_login = LOGIN($uid);
+
+	        		if($_login['meta']['error']){
+		        		
+		        		$api_result['meta']['error'] = $_login['meta']['error'];
+		        		$api_result['meta']['msg'] = $_login['meta']['msg'];
+		        	}else{
+		        		
+		        		$api_result['data'] = $_login['data'];
+		        	}
+
+
 	        	}
+	        
+			}
 
 
-        	}
 
+        
 		}
 		
 
@@ -1276,7 +1364,7 @@ function edit_openuser($platfrom='',$openid='',$_Return=false){
 
 
 
-function get_openuser($platfrom='',$openid='',$_Return=false){
+function GET_OPENUSER($platfrom='',$openid='',$_Return=false){
 	
 
 	$app = \Slim\Slim::getInstance(); 
@@ -1292,6 +1380,21 @@ function get_openuser($platfrom='',$openid='',$_Return=false){
 	    if($_Return) return $api_result; 
 	    echojson($api_result);exit();
 	}
+
+	 
+	if(!$_Return){
+		$access_token = isset($_REQUEST['access_token']) ? $_REQUEST['access_token']:'';
+		$authorize = AUTHORIZE($access_token,true);
+		if($authorize['meta']['error']){
+			$api_result['meta']['error'] = $authorize['meta']['error'];
+			$api_result['meta']['msg'] = $authorize['meta']['msg'];
+			echojson($api_result);
+			exit();
+		}
+	} 
+
+
+
 
 	
     try {
@@ -1423,12 +1526,9 @@ function isEmail($subject) {
 }
 
 function isPhone($subject) {
+	return is_numeric($subject);
 	
-	$pattern ='/^\d{7,}$/'; 
-	if(preg_match($pattern, $subject)){
-		return true;
-	}
-	return false;
+
 }
 
 
@@ -1512,9 +1612,6 @@ function savecookie($userarry='',$lTime='Y'){
     	return false;
     }
 };
-
-
-
 
 
 

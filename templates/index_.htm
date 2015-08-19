@@ -49,7 +49,7 @@ $apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
               <tr><td> headimg</td><td> 否</td><td> varchar(255) 头像地址</td></tr>
               <tr><td> sex</td><td> 否</td><td> char(1) 性别，1：男、2：女、0：未知</td></tr>
               <tr><td> email</td><td> 否</td><td> varchar(255) 邮件(可做登录)</td></tr>
-              <tr><td> cell</td><td> 否</td><td> varchar(255) 电话(可做登录)</td></tr>
+              <tr><td> cell</td><td> 否</td><td> varchar(255) 电话(可做登录)[会自动去掉+-等连接符只保留数字]</td></tr>
               <tr><td> birthday</td><td> 否</td><td> datetime 出生日期</td></tr>
               <tr><td> company</td><td> 否</td><td> varchar(255) 公司</td></tr>
               <tr><td> addr</td><td> 否</td><td> varchar(255) 地址</td></tr>
@@ -165,7 +165,7 @@ $apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
               <tr><td> status</td><td> 否</td><td> text 用户状态(json数组)[用户的最近一条微博信息字段]</td></tr>
               <tr><td> remark</td><td> 否</td><td> varchar(255) 备注(微博是否认证)可存json数组</td></tr>
               <tr><td> object</td><td> 否</td><td> text 预留字段(不能检索,可存json数组)</td></tr>
-              <tr><td colspan=3>接入某个开放平台用户信息绑定到用户中心并且以第三方登录</td></tr>
+              <tr><td colspan=3>接入某个开放平台用户信息绑定到用户中心并且以第三方登录( 每次会自动更新接入信息，并把资料传给用户中心，但只更新用户中心为空的资料项 ) </td></tr>
             </tbody></table>
         </div>
 
@@ -203,8 +203,22 @@ $apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
               <tr><td> object</td><td> 否</td><td> text 预留字段(不能检索,可存json数组)</td></tr>
               <tr><td colspan=3> 改绑 和 解绑 第三方登录 [token验证权限] </td></tr>
             </tbody></table>
-
         </div>
+
+        <br/>
+        <div>
+            <strong>获得资料</strong>
+            <strong>GET/POST</strong>
+            <?php echo $apiurl;?>oauth2/open/:platfrom/:openid?access_token=ACCESS_TOKEN
+            <table border="1" cellspacing="0" cellpadding="4" width="100%"><tbody>
+              <tr><th style="width:120px">参数</th><th style="width:120px">是否必须</th><th>说明</th></tr>
+              <tr><td> access_token</td><td> 是</td><td> 调用接口凭证</td></tr>
+              <tr><td> :platfrom</td><td> 是</td><td> tinyint(2)  平台ID (0斑羚 1微信 2新浪 3腾讯 4人人 ..)</td></tr>
+              <tr><td> :openid</td><td> 是</td><td> varchar(255) 用户唯一标识</td></tr>
+              <tr><td colspan=3> 获得开放平台用户资料信息</td></tr>
+            </tbody></table>
+        </div>
+
 
 
         <br />
@@ -239,7 +253,7 @@ $apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
     3009 "This `cell` already exists" 这个电话已存在
     3010 "The `username` can not null" 用户名不能为空
     3011 "This account not change `username`" 此帐号已绑定用户名不能修改
-
+    3012 "The `username` Cannot numbers" 用户名不能为纯数字 
 
              
         </pre>
@@ -255,7 +269,7 @@ $apiurl = dirname("http://".$_SERVER["HTTP_HOST"].$_SERVER["SCRIPT_NAME"])."/";
               <input type="radio" name="RESTful" value="PATCH">PATCH
               <input type="radio" name="RESTful" value="OPTIONS">OPTIONS
               <br/>
-              参数：<input type="text" id="newFormMOD" style="width: 80%;line-height: 30px;"  placeholder="字段名=值&名2=值2..." value="email=fk@t.cn&cell=38389438&userid=feikeq&secret=123456&openid=feikeq&platfrom=0&nickname=废客泉&username=ccav">
+              参数：<input type="text" id="newFormMOD" style="width: 80%;line-height: 30px;"  placeholder="字段名=值&名2=值2..." value="email=service@banling.com&cell=400-650-2029&userid=feikeq&secret=123456&openid=feikeq&platfrom=0&nickname=斑羚在线&username=bl">
               <br/>
               <!-- input type="submit" value="Test RESTful API" style="width: 50%; height: 50px;line-height: 50px;background: #fff;" / -->
           </form>
