@@ -1,7 +1,7 @@
-#connect 用户中心 - RESTful API 1.0
-##connect用户中心API构架基于PHP+Silm+MySQL编写 
+# connect 用户中心 - RESTful API 1.0
+## connect用户中心API构架基于PHP+Silm+MySQL编写 
 
-###什么要使用这个用户中心框架？
+### 什么要使用这个用户中心框架？
 * 完全适应任何网站和应用的用户体系管理
 * 能接入目前几乎所有第三方平台用户登录
 * 可以使用手机、邮箱、用户名、第三方开放平台登录
